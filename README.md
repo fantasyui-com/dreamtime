@@ -1,6 +1,10 @@
 # dreamtime
 Causality violation for JavaScript. Executing programs before functions are written (think cucumber in js)
 
+## References
+
+https://github.com/fantasyui-com/tarnation
+
 ## Example
 
 ```JavaScript
