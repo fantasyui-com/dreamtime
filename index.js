@@ -1,3 +1,6 @@
+const kebabCase = require('kebab-case');
+const path = require('path');
+const fs = require('fs');
 
 module.exports = function(obj={}){
 
@@ -26,18 +29,38 @@ module.exports = function(obj={}){
           console.info(`end got data: `, JSON.stringify({input, setup}))
         });
 
-        // Create the chain
 
+        // Create the chain
         for(let index = 0; index<obj._dreamtime.data.length-1; index++){
           let [name, setup] = data[index];
           emitter.on(name, function({input, setup}){
             console.info(`${name} got data: `, JSON.stringify({input, setup}));
-            {
+
+
+
+                    if( !fs.existsSync(path.resolve(`./code_modules/${kebabCase(name)}`)) ){
+                      fs.mkdirSync(path.resolve(`./code_modules/${kebabCase(name)}`))
+                      fs.copyFileSync(`${__dirname}/templates/standard/index.js`, `./code_modules/${kebabCase(name)}/index.js`);
+                      fs.copyFileSync(`${__dirname}/templates/standard/package.json`, `./code_modules/${kebabCase(name)}/package.json`);
+                      fs.copyFileSync(`${__dirname}/templates/standard/test.js`, `./code_modules/${kebabCase(name)}/test.js`);
+                      let p = JSON.parse(fs.readFileSync(`./code_modules/${kebabCase(name)}/package.json`).toString());
+                      p.name = kebabCase(name);
+                      fs.writeFileSync(`./code_modules/${kebabCase(name)}/package.json`, JSON.stringify(p,null,'  '))
+                    }
+
+            const program = require(path.resolve(`./code_modules/${kebabCase(name)}/index.js`));
+            const req = input;
+            const res = {};
+            const next = function(){
+              let input = res;
               let [name, setup] = data[index+1];
               emitter.emit(name, {input, setup});
             }
+            program(req, res, next);
           });
         }
+
+        // Create missing modules
 
 
         // BOOT

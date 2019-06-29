@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/fantasyui-com/dreamtime/issues"
   },
-  "homepage": "https://github.com/fantasyui-com/dreamtime#readme"
+  "homepage": "https://github.com/fantasyui-com/dreamtime#readme",
+  "dependencies": {
+    "kebab-case": "^1.0.0"
+  }
 }
