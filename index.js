@@ -1,8 +1,11 @@
+
 const kebabCase = require('kebab-case');
 const path = require('path');
 const fs = require('fs');
+const EventEmitter = require('events');
+const util = require('util');
+
 module.exports = function(obj={}){
-    const EventEmitter = require('events');
     class MyEmitter extends EventEmitter {};
     const emitter = new MyEmitter();
     // PREPARATION OF OBJ METADATA
@@ -25,7 +28,11 @@ module.exports = function(obj={}){
         for(let index = 0; index<obj._dreamtime.data.length-1; index++){
           let [name, setup] = data[index];
           emitter.on(name, function({input, setup}){
-            console.info(`${name} got data: `, JSON.stringify({input, setup}));
+
+            console.log(`\n -- -- -- -- -- ${name} -- -- -- -- -- \n`);
+            console.log(`${name} got input data:\n`, util.inspect(input, {compact:true}));
+            console.log(`${name} got setup data:\n`, util.inspect(setup, {compact:true}));
+
             if( !fs.existsSync(path.resolve(`./code_modules/${kebabCase(name)}`)) ){
               fs.mkdirSync(path.resolve(`./code_modules/${kebabCase(name)}`), {recursive:true})
               fs.copyFileSync(`${__dirname}/templates/standard/index.js`, `./code_modules/${kebabCase(name)}/index.js`);
@@ -37,6 +44,7 @@ module.exports = function(obj={}){
             }
             const program = require(path.resolve(`./code_modules/${kebabCase(name)}/index.js`));
             const req = input;
+            req.setup = setup;
             const res = {};
             const next = function(){
               let input = res;
@@ -60,8 +68,8 @@ module.exports = function(obj={}){
       get(target, propKey) {
           if((!obj[propKey])&&(typeof propKey === 'string')){
             // this is the faux function that gathers intel on the program:
-            obj[propKey] = function(){
-              obj._dreamtime.data.push([propKey, arguments]);
+            obj[propKey] = function(setup){
+              obj._dreamtime.data.push([propKey, setup]);
               return proxy;
             }
             return obj[propKey];
