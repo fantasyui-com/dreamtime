@@ -1,6 +1,10 @@
 # dreamtime
 Causality violation for JavaScript. Executing programs before functions are written (think cucumber in js)
 
+## Todo
+
+- if module directory changes update the package.json name field
+
 ## References
 
 https://github.com/fantasyui-com/tarnation

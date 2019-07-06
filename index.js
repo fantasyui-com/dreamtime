@@ -27,11 +27,12 @@ module.exports = function(obj={}){
         // Create the chain
         for(let index = 0; index<obj._dreamtime.data.length-1; index++){
           let [name, setup] = data[index];
+          const moduleName = kebabCase(name);
           emitter.on(name, function({input, setup}){
 
-            console.log(`\n -- -- -- -- -- ${name} -- -- -- -- -- \n`);
-            console.log(`${name} got input data:\n`, util.inspect(input, {compact:true}));
-            console.log(`${name} got setup data:\n`, util.inspect(setup, {compact:true}));
+            // console.log(`\n -- -- -- -- -- ${name} -- -- -- -- -- \n`);
+            // console.log(`${name} got input data:\n`, util.inspect(input, {compact:true}));
+            // console.log(`${name} got setup data:\n`, util.inspect(setup, {compact:true}));
 
             if( !fs.existsSync(path.resolve(`./code_modules/${kebabCase(name)}`)) ){
               fs.mkdirSync(path.resolve(`./code_modules/${kebabCase(name)}`), {recursive:true})
@@ -43,15 +44,16 @@ module.exports = function(obj={}){
               fs.writeFileSync(`./code_modules/${kebabCase(name)}/package.json`, JSON.stringify(p,null,'  '))
             }
             const program = require(path.resolve(`./code_modules/${kebabCase(name)}/index.js`));
-            const req = input;
-            req.setup = setup;
-            const res = {};
+
+
+            const output = {};
             const next = function(){
-              let input = res;
+              console.log(`Output from ${moduleName} contained ${Object.keys(output).join(', ')}`)
+              let input = output;
               let [name, setup] = data[index+1];
               emitter.emit(name, {input, setup});
             }
-            program(req, res, next);
+            program({setup, input, output, next});
           });
         }
         // Create missing modules

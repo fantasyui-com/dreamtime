@@ -1,11 +1,12 @@
 
-module.exports = function(req, res, next){
+module.exports = function({setup, input, output, next}){
+  // setup contains function parameters
+  // input contains input packet
+  // output contains .meta and .data
+  // assign something to data
+  output.data = 'TODO';
 
-      // assign something to data
-      res.data = 'TODO';
-
-      // always call next.
-      // next will send res to the next program in the chain
-      next();
-
+  // always call next.
+  // next will send res to the next program in the chain
+  next();
 }
