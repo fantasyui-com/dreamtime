@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/fantasyui-com/dreamtime#readme",
   "dependencies": {
+    "chalk": "^2.4.2",
     "kebab-case": "^1.0.0"
   }
 }
