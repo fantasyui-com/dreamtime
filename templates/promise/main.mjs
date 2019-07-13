@@ -1,9 +1,12 @@
+import util from 'util';
 import sleep from './util/sleep.mjs';
 
 export default async function main({context, setup, input}) {
 
+  console.log(util.inspect(input,false,2,true))
+
   const output = {
-    // someList:[],
+    someList:[],
     // url: 'example.com',
     // meta: {},
     // data: {},
@@ -11,8 +14,9 @@ export default async function main({context, setup, input}) {
 
   return new Promise( async (resolve, reject) => {
 
+    setup.sleepList = [1,2,3]; // Faux
     for (const duration of setup.sleepList) {
-      output.htmlList.push( await sleep(duration) );
+      output.someList.push( await sleep(duration) );
     }
     resolve(output);
 

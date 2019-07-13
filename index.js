@@ -66,6 +66,7 @@ const manager = function(program){
     buildIndex: function(){
       const indexContent = [];
       const requireContents = [];
+      requireContents.push(`import util from 'util';`)
       const asyncCallLine = [];
 
       const functionIndex = [];
@@ -89,15 +90,22 @@ const manager = function(program){
           asyncCallLine.push(``);
           asyncCallLine.push(`    // ${index+1}. ${part.name}:${part.description}`);
 
+          asyncCallLine.push(`    console.log('\\n${part.name}');`);
+
           if(!previousPart){
             // first
             asyncCallLine.push(`    const ${moduleVariable}Result = await ${moduleVariable}({context,setup:${toSource(clean, null, '')},input:{}});`);
+            asyncCallLine.push(`    // console.log(util.inspect(${moduleVariable}Result),false,2,true)`);
+
           }else if(index == section.data.length-1){
             // last
             asyncCallLine.push(`    const finalResult = await ${moduleVariable}({context,setup:${toSource(clean, null, '')},input: ${camelCase(previousPart.name)}Result});`);
+            asyncCallLine.push(`    // console.log(util.inspect(finalResult),false,2,true)`);
+
           }else{
             // middle
             asyncCallLine.push(`    const ${moduleVariable}Result = await ${moduleVariable}({context,setup:${toSource(clean, null, '')},input: ${camelCase(previousPart.name)}Result});`);
+            asyncCallLine.push(`    // console.log(util.inspect(${moduleVariable}Result),false,2,true)`);
           }
 
           functionIndex.push(moduleVariable)
@@ -115,22 +123,23 @@ const manager = function(program){
 
       //indexContent.push(`const functionIndex = [${functionIndex.join(', ')}];`);
 
-      indexContent.push('async function main(){');
+      indexContent.push('async function main(context={}){');
       indexContent.push('');
       indexContent.push('  try {');
       asyncCallLine.forEach(line => indexContent.push(line));
       indexContent.push('');
       indexContent.push('    // Return Result');
-      indexContent.push('    successCallback(finalResult);');
+      indexContent.push('    return finalResult;');
       indexContent.push('');
 
       indexContent.push('  } catch(error) {');
       indexContent.push('');
-      indexContent.push('    failureCallback(error);');
+      indexContent.push('    console.error(error);');
       indexContent.push('');
       indexContent.push('  } // end try/catch');
       indexContent.push('');
       indexContent.push('} // end function main ()');
+      indexContent.push('main();');
 
 
 
