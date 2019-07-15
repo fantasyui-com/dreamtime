@@ -1,0 +1,24 @@
+Program: Dreamtime Dreamtime by fantasyui-com
+Description: Web interface for editing programs
+
+Procedure: View Page - This is the primary procedure, here we render a GUI for a given page.
+
+  Task: Render Page Data - Prepare the data content
+    Action: load data file
+    Action: convert data to html
+
+  Task: Render Page Template - Load GUI template
+    Action: insert the data GUI
+
+  Task: Render Page - Return the HTML document
+
+Procedure: Edit Page - This is the primary procedure, here we render a GUI for a given page.
+
+  Task: Render Page Data - Prepare the data content for editing
+    Action: load data file
+    Action: convert data to html
+
+  Task: Render Page Template - Load GUI template
+    Action: insert the data GUI
+
+  Task: Render Page - Return the HTML document

@@ -15,6 +15,7 @@ const ensureModule = require('ensure-module')({
 });
 
 const manager = function(program){
+
   return {
 
     updatePackage: function(){
