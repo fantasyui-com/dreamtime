@@ -221,9 +221,8 @@ module.exports = function({textPath,codePath}){
 
 
   })
-  //console.log(inspect(program,false,6,true))
-  console.log( JSON.stringify(program,null,' ') )
-  // interpret lines ...
 
+  console.log( JSON.stringify(program,null,' ') )
+  jsFile.push(`\nconst program = ${JSON.stringify(program,null,' ')};\nmodule.exports = program;\n`);
   fs.writeFileSync( codePath, jsFile.join('\n') );
 }
