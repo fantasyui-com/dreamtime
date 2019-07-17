@@ -1,14 +1,18 @@
 const kebabCase = require('lodash/kebabCase');
 const camelCase = require('lodash/camelCase');
+const uniq = require('lodash/uniq');
+const take = require('lodash/take');
 
 const path = require('path');
 const fs = require('fs');
 const EventEmitter = require('events');
 const util = require('util');
 const chalk = require('chalk');
+var pluralize = require('pluralize')
 
 const toSource = require('tosource')
 const beautify = require('js-beautify').js;
+const stopword = require('stopword');
 
 const ensureModule = require('../ensure-module');
 
@@ -49,8 +53,28 @@ const manager = function(program){
     },
 
     buildModules: function(){
+      function keywords(meta){
+        if(meta.keywords){
+          return meta.keywords
+        }
 
-      console.log('Building modules...')
+        let strings = meta.keywords || [];
+        if(meta.name){
+          strings = strings.concat(meta.name.toLowerCase().split(' '))
+        }
+        if(meta.description){
+          strings = strings.concat(meta.description.toLowerCase().split(' '))
+        }
+        strings = strings.sort()
+        strings = strings.map(string=>pluralize(string,1))
+
+        strings = stopword.removeStopwords(strings);
+        strings = uniq(strings);
+        strings = take(strings, 4);
+        return strings;
+      }
+
+      //console.log('Building modules...')
       // make the index.js file
       program.data.forEach(function(procedure, index){
           const procedureVariable = camelCase(procedure.meta.name);
@@ -60,7 +84,7 @@ const manager = function(program){
           ensureModule(
             path.resolve(`${__dirname}/templates/promise`), // templates are stored relative to this file's dir
             path.resolve(`./code_modules/${procedureName}`), // results realtive to calling program's root.
-            Object.assign({author: program.meta.author},procedure.meta)
+            Object.assign({author: program.meta.author, keywords:keywords(procedure.meta)},procedure.meta)
           );
 
           procedure.data.forEach(function(task,index){
@@ -70,7 +94,7 @@ const manager = function(program){
             ensureModule(
               path.resolve(`${__dirname}/templates/promise`), // templates are stored relative to this file's dir
               path.resolve(`./code_modules/${procedureName}/code_modules/${taskName}`), // results realtive to calling program's root.
-              Object.assign({author: program.meta.author},task.meta)
+              Object.assign({author: program.meta.author, keywords:keywords(task.meta)},task.meta)
             );
 
             task.data.forEach(function(action,index){
@@ -81,7 +105,7 @@ const manager = function(program){
               ensureModule(
                 path.resolve(`${__dirname}/templates/promise`), // templates are stored relative to this file's dir
                 path.resolve(`./code_modules/${procedureName}/code_modules/${taskName}/code_modules/${actionName}`), // results realtive to calling program's root.
-                Object.assign({author: program.meta.author},action.meta)
+                Object.assign({author: program.meta.author, keywords:keywords(action.meta)},action.meta)
               );
 
 

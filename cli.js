@@ -23,6 +23,7 @@ program
   .command('build')
   .option('-d, --dest', 'destination path --dest ./out/')
   .action(function (dir, cmd) {
+    console.log('Building from program.js, to generate program.js from program.txt run: dreamtime convert program.txt')
     const program = require(path.resolve('program.js'));
     const options = {
       //dest: path.resolve(dir.toString())

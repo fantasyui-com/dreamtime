@@ -4,12 +4,14 @@
   "description": "{{description}}",
   "main": "index.mjs",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "test.js"
   },
-  "keywords": [],
+  "keywords": [{{#each keywords}}"{{.}}"{{#unless @last}},{{/unless}}{{/each}}],
   "author": "{{author}}",
-  "license": "ISC",
+  "license": "{{license}}{{#unless license}}GPL-3.0-or-later{{/unless}}",
   "dependencies": {
-    {{{modules modules}}}
+    {{#each dependencies}}
+      "{{name}}": "{{version}}"{{#unless @last}},{{/unless}}
+    {{/each}}
   }
 }

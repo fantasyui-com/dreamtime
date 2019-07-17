@@ -5,11 +5,6 @@ const {inspect} = require('util');
 const kebabCase = require('lodash/kebabCase');
 const zip = require('lodash/zip');
 
-
-
-
-
-
 const matchPatterns = function(patternList,lineText){
   for(let index = 0; index < patternList.length; index++){
     const patternExpression = patternList[index];
@@ -71,24 +66,24 @@ const lineInterpreter = function(lineText){
       /.*?:\s*(?<name>.+?)$/ // no description
     ]
     data = matchPatterns(patternList, lineText);
-  }else if(type === 'task-modules'){
+  }else if(type === 'task-dependencies'){
     const patternList = [
-      /.*?:\s*(?<modules>.+?)$/ // no description
+      /.*?:\s*(?<dependencies>.+?)$/ // no description
     ]
     data = matchPatterns(patternList, lineText);
-    data.modules = data.modules.split(/, | |,/).map(i=>i.trim());
+    data.dependencies = data.dependencies.split(/, | |,/).map(i=>i.trim()).map(name=>({name,version:'latest'}));
   }else if(type === 'action'){
     const patternList = [
       /.*?:\s*(?<name>.+?)\s*-\s*(?<description>.*)$/, // with description
       /.*?:\s*(?<name>.+?)$/ // no description
     ]
     data = matchPatterns(patternList, lineText);
-  }else if(type === 'action-modules'){
+  }else if(type === 'action-dependencies'){
     const patternList = [
-      /.*?:\s*(?<modules>.+?)$/ // no description
+      /.*?:\s*(?<dependencies>.+?)$/ // no description
     ]
     data = matchPatterns(patternList, lineText);
-    data.modules = data.modules.split(/, | |,/).map(i=>i.trim());
+    data.dependencies = data.dependencies.split(/, | |,/).map(i=>i.trim()).map(name=>({name,version:'latest'}));
   }else if(type === 'action-parameters'){
     const patternList = [
       /.*?:\s*(?<parameters>.+?)$/ // no description
@@ -160,7 +155,7 @@ module.exports = function({textPath,codePath}){
     let lineText = input.trim();
     let lineData = lineInterpreter(input)
 
-    console.log(lineData)
+    //console.log(lineData)
 
     if(0){
 
@@ -194,12 +189,12 @@ module.exports = function({textPath,codePath}){
     } else if (lineData.type === 'task-parameters') {
       activeTask.meta.parameters = lineData.parameters;
 
-    } else if (lineData.type === 'task-modules') {
-      activeTask.meta.modules = lineData.modules;
+    } else if (lineData.type === 'task-dependencies') {
+      activeTask.meta.dependencies = lineData.dependencies;
 
 
-    } else if (lineData.type === 'action-modules') {
-      activeAction.meta.modules = lineData.modules;
+    } else if (lineData.type === 'action-dependencies') {
+      activeAction.meta.dependencies = lineData.dependencies;
 
     } else if (lineData.type === 'procedure-test') {
       let {description, assertion} = lineData;
@@ -222,7 +217,7 @@ module.exports = function({textPath,codePath}){
 
   })
 
-  console.log( JSON.stringify(program,null,' ') )
+  //console.log( JSON.stringify(program,null,' ') )
   jsFile.push(`\nconst program = ${JSON.stringify(program,null,' ')};\nmodule.exports = program;\n`);
   fs.writeFileSync( codePath, jsFile.join('\n') );
 }

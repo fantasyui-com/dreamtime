@@ -27,6 +27,8 @@
     "js-beautify": "^1.10.0",
     "kebab-case": "^1.0.0",
     "lodash": "^4.17.14",
+    "pluralize": "^8.0.0",
+    "stopword": "^0.3.1",
     "tosource": "^1.0.0"
   }
 }
