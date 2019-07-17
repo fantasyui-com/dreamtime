@@ -1,25 +1,26 @@
 import util from 'util';
 import sleep from './util/sleep.mjs';
 
-export default async function main({context, setup, input}) {
+export default async function main({ context, setup, input }) {
 
-  console.log(util.inspect(input,false,2,true))
+  // console.log(util.inspect(input,false,2,true))
 
   const output = {
     someList:[],
     // url: 'example.com',
-    // meta: {},
     // data: {},
   };
 
-  return new Promise( async (resolve, reject) => {
+  return async (resolve, reject) => {
 
-    setup.sleepList = [1,2,3]; // Faux
+    console.log('module code incomplete...')
+    setup.sleepList = [1,2,3,5,8,13];
     for (const duration of setup.sleepList) {
-      output.someList.push( await sleep(duration) );
+      await sleep(duration);
+      console.log('still incomplete...')
     }
-    resolve(output);
 
-  });
+    resolve(output);
+  };
 
 };

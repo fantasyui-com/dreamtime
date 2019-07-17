@@ -10,9 +10,7 @@ const chalk = require('chalk');
 const toSource = require('tosource')
 const beautify = require('js-beautify').js;
 
-const ensureModule = require('ensure-module')({
-  templateSource: path.resolve(`${__dirname}/templates/`),
-});
+const ensureModule = require('../ensure-module');
 
 const manager = function(program){
 
@@ -51,17 +49,52 @@ const manager = function(program){
     },
 
     buildModules: function(){
-      // make the index.js file
-      program.data.forEach(function(section){
-        // readme.push(`## ${section.meta.name}`)
-        let previousPart;
-        section.data.forEach(function(part,index){
-          const moduleVariable = camelCase(part.name);
-          const moduleName = kebabCase(part.name);
-          ensureModule(moduleName);
 
-        });
-      });
+      console.log('Building modules...')
+      // make the index.js file
+      program.data.forEach(function(procedure, index){
+          const procedureVariable = camelCase(procedure.meta.name);
+          const procedureName = kebabCase(procedure.meta.name);
+          //console.log(procedureVariable)
+
+          ensureModule(
+            path.resolve(`${__dirname}/templates/promise`), // templates are stored relative to this file's dir
+            path.resolve(`./code_modules/${procedureName}`), // results realtive to calling program's root.
+            Object.assign({author: program.meta.author},procedure.meta)
+          );
+
+          procedure.data.forEach(function(task,index){
+            const taskVariable = camelCase(task.meta.name);
+            const taskName = kebabCase(task.meta.name);
+            //console.log('  ' + taskVariable)
+            ensureModule(
+              path.resolve(`${__dirname}/templates/promise`), // templates are stored relative to this file's dir
+              path.resolve(`./code_modules/${procedureName}/code_modules/${taskName}`), // results realtive to calling program's root.
+              Object.assign({author: program.meta.author},task.meta)
+            );
+
+            task.data.forEach(function(action,index){
+              const actionVariable = camelCase(action.meta.name);
+              const actionName = kebabCase(action.meta.name);
+              //console.log('    ' + actionVariable)
+
+              ensureModule(
+                path.resolve(`${__dirname}/templates/promise`), // templates are stored relative to this file's dir
+                path.resolve(`./code_modules/${procedureName}/code_modules/${taskName}/code_modules/${actionName}`), // results realtive to calling program's root.
+                Object.assign({author: program.meta.author},action.meta)
+              );
+
+
+
+            }); // action
+
+          }); // task
+
+        }); // procedures
+
+
+
+
     },
 
     buildIndex: function(){

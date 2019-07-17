@@ -17,18 +17,22 @@ program
     const codePath = path.resolve('program.js');
     // console.log('Ok, converting ' + dir + ' to program.js' + (cmd.bork ? ' bork' : ''))
     textConverter({textPath,codePath});
-  })
+  });
 
-  .command('build <file>')
-  .option('-b, --bork', 'Enable bork mode.')
+program
+  .command('build')
+  .option('-d, --dest', 'destination path --dest ./out/')
   .action(function (dir, cmd) {
     const program = require(path.resolve('program.js'));
-    const manager = dreamtime(program);
-      manager.buildReadme();
-      manager.updatePackage();
-      manager.buildIndex();
-      manager.buildModules();
+    const options = {
+      //dest: path.resolve(dir.toString())
+    }
+    const manager = dreamtime(program, options);
+      // manager.buildReadme();
+      // manager.updatePackage();
 
+      // manager.buildIndex();
+      manager.buildModules();
   })
 
 program.parse(process.argv)
