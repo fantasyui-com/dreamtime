@@ -1,5 +1,7 @@
 const kebabCase = require('lodash/kebabCase');
 const camelCase = require('lodash/camelCase');
+const startCase = require('lodash/startCase');
+
 const uniq = require('lodash/uniq');
 const take = require('lodash/take');
 
@@ -8,7 +10,7 @@ const fs = require('fs');
 const EventEmitter = require('events');
 const util = require('util');
 const chalk = require('chalk');
-var pluralize = require('pluralize')
+const pluralize = require('pluralize')
 
 const toSource = require('tosource')
 const beautify = require('js-beautify').js;
@@ -16,13 +18,65 @@ const stopword = require('stopword');
 
 const ensureModule = require('../ensure-module');
 
+
+const describeMeta = function(readme, meta){
+  Object
+    .entries(meta)
+    .forEach(function([key, value]) {
+      if (typeof value === 'string') {
+        if((key==='name')||(key==='description')||(key==='type')) return
+        readme.push(`- **${startCase(key)}**: ${value}`)
+      }
+      else if (Array.isArray(value)) {
+        if(value.length === 0) return
+        readme.push(`- **${startCase(key)}**:`);
+
+        value.forEach(function(value) {
+          if (typeof value === 'string') {
+            readme.push(`   - ${value}`);
+          }
+          else if (Array.isArray(value)) {
+            readme.push(`  - **${startCase(key)}**`);
+            value.forEach(function(value) {
+              if (typeof value === 'string') {
+                readme.push(`  - ${value}`);
+              }
+              else if (Array.isArray(value)) {
+                readme.push(`  - **${startCase(key)}**`);
+              }
+            })
+          }
+          else if (typeof value === 'object') {
+            let items = [];
+            Object
+              .entries(value)
+              .forEach(function([name, value]) {
+                if((key === 'modules') && (name === 'name')){
+                  items.push(`**${startCase(name)}**: [${value}](https://nodejs.org/api/${value}.html)`);
+                }else if((key === 'dependencies') && (name === 'name')){
+                    items.push(`**${startCase(name)}**: [${value}](https://www.npmjs.com/package/${value})`);
+                }else{
+                items.push(`**${startCase(name)}**: ${value}`);
+                }
+              });
+            readme.push(`    - ${items.join(', ')}`)
+
+          }
+        })
+      }
+    });
+}
+
 const manager = function(program){
 
   return {
 
     updatePackage: function(){
       const packageJson = JSON.parse(fs.readFileSync(path.resolve('./package.json')));
-      Object.assign(packageJson, program.meta, {name:kebabCase(program.meta.name)});
+      Object.assign(packageJson, program.meta, {
+        name:kebabCase(program.meta.name),
+        main:'index.mjs'
+      });
       fs.writeFileSync(path.resolve('./package.json'), JSON.stringify(packageJson, null, '  ') );
     },
 
@@ -32,23 +86,79 @@ const manager = function(program){
       readme.push(`${program.meta.description}`);
       readme.push('---');
       readme.push('');
-      program.data.forEach(function(section){
-        readme.push(`## ${section.meta.name}`)
-        section.data.forEach(function(part){
-          readme.push(`### ${part.name}`)
-          readme.push(`${part.description}`)
-          readme.push('```JavaScript')
-          let moduleName = kebabCase(part.name);
 
-          let clean = Object.assign({moduleName },part);
-          delete clean.name;
-          delete clean.description;
-          let beautiful = beautify(toSource(clean, null, ''), { indent_size: 2, space_in_empty_paren: true }).trim();
-          readme.push(`${beautiful}`)
-          readme.push('```')
-          //readme.push(`[${moduleName}](./code_modules/${moduleName}/README.md)`)
-        });
-      });
+      // walk program procedures
+      program.data.forEach(function(procedure, procedureIndex){
+        const procedureTitle = `---\n## ${procedureIndex+1}) Program ${startCase(procedure.meta.type)}: ${procedure.meta.name}`;
+        const procedureVariable = camelCase(procedure.meta.name);
+        const procedureName = kebabCase(procedure.meta.name);
+        readme.push(procedureTitle);
+        readme.push(`${procedure.meta.description}`)
+        readme.push('');
+        readme.push(`[./code_modules/${kebabCase(procedure.meta.name)}](code_modules/${kebabCase(procedure.meta.name)})`);
+        readme.push('');
+
+        describeMeta(readme, procedure.meta);
+
+        // walk procedure's tasks
+        procedure.data.forEach(function(task, taskIndex){
+          const taskTitle = `---\n### ${procedureIndex+1}.${taskIndex+1}) ${startCase(procedure.meta.type)} ${startCase(task.meta.type)}: ${task.meta.name}`;
+          const taskVariable = camelCase(task.meta.name);
+          const taskName = kebabCase(task.meta.name);
+          readme.push(taskTitle);
+          readme.push(`${task.meta.description}`)
+          readme.push('');
+          readme.push(`[./code_modules/${kebabCase(procedure.meta.name)}/code_modules/${kebabCase(task.meta.name)}](code_modules/${kebabCase(procedure.meta.name)}/code_modules/${kebabCase(task.meta.name)})`);
+          readme.push('');
+          describeMeta(readme, task.meta);
+
+          // walk task's actions
+          task.data.forEach(function(action, actionIndex){
+            const actionTitle = `---\n#### ${procedureIndex+1}.${taskIndex+1}.${actionIndex+1}) ${startCase(task.meta.type)} ${startCase(action.meta.type)}: ${action.meta.name}`;
+            const actionVariable = camelCase(action.meta.name);
+            const actionName = kebabCase(action.meta.name);
+            readme.push(actionTitle);
+            readme.push(`${action.meta.description}`)
+            readme.push('');
+            readme.push(`[./code_modules/${kebabCase(procedure.meta.name)}/code_modules/${kebabCase(task.meta.name)}/code_modules/${kebabCase(action.meta.name)}](code_modules/${kebabCase(procedure.meta.name)}/code_modules/${kebabCase(task.meta.name)}/code_modules/${kebabCase(action.meta.name)})`);
+            readme.push('');
+            describeMeta(readme, action.meta);
+
+          }); // walk task's actions: task-action
+        }); // walk procedure's tasks: procedure-task
+      }); // walk program procedures: program-procedure
+
+
+
+      //
+      //
+      //
+      //
+      //
+      //
+      // const readme = [];
+      // readme.push(`# ${program.meta.name}`);
+      // readme.push(`${program.meta.description}`);
+      // readme.push('---');
+      // readme.push('');
+      // program.data.forEach(function(section){
+      //   readme.push(`## ${section.meta.name}`)
+      //   section.data.forEach(function(part){
+      //     readme.push(`### ${part.name}`)
+      //     readme.push(`${part.description}`)
+      //     readme.push('```JavaScript')
+      //     let moduleName = kebabCase(part.name);
+      //
+      //     let clean = Object.assign({moduleName },part);
+      //     delete clean.name;
+      //     delete clean.description;
+      //     let beautiful = beautify(toSource(clean, null, ''), { indent_size: 2, space_in_empty_paren: true }).trim();
+      //     readme.push(`${beautiful}`)
+      //     readme.push('```')
+      //     //readme.push(`[${moduleName}](./code_modules/${moduleName}/README.md)`)
+      //   });
+      // });
+
       fs.writeFileSync(path.resolve('./README.md'), readme.join('\n') );
     },
 
@@ -66,6 +176,7 @@ const manager = function(program){
           strings = strings.concat(meta.description.toLowerCase().split(' '))
         }
         strings = strings.sort()
+        strings = strings.map(string=>string.replace(/[^a-z0-9-]/,''))
         strings = strings.map(string=>pluralize(string,1))
 
         strings = stopword.removeStopwords(strings);
@@ -74,29 +185,52 @@ const manager = function(program){
         return strings;
       }
 
-      //console.log('Building modules...')
-      // make the index.js file
+      // walk program procedures
       program.data.forEach(function(procedure, index){
           const procedureVariable = camelCase(procedure.meta.name);
           const procedureName = kebabCase(procedure.meta.name);
           //console.log(procedureVariable)
 
+          const code = {
+            taskImport:procedure.data.map(task=>({name:task.meta.name,description:task.meta.description})),
+            taskExecutioin:[],
+          };
+          let previousTask = {meta:{},data:[]};
+          procedure.data.forEach(function(task, index){
+            const name = task.meta.name;
+            previousName = previousTask.meta.name;
+            const description = task.meta.description;
+            const setup = task.meta.parameters
+            code.taskExecutioin.push({name,description,setup,previousName})
+            previousTask = task;
+          });
+
+          const data = {};
+          Object.assign(data, {author: program.meta.author, keywords:keywords(procedure.meta)});
+          Object.assign(data, procedure.meta);
+          Object.assign(data, code);
+
+
           ensureModule(
-            path.resolve(`${__dirname}/templates/promise`), // templates are stored relative to this file's dir
+            path.resolve(`${__dirname}/templates/program-procedure`), // templates are stored relative to this file's dir
             path.resolve(`./code_modules/${procedureName}`), // results realtive to calling program's root.
-            Object.assign({author: program.meta.author, keywords:keywords(procedure.meta)},procedure.meta)
+            data
           );
 
+          // walk procedure's tasks
           procedure.data.forEach(function(task,index){
+
             const taskVariable = camelCase(task.meta.name);
             const taskName = kebabCase(task.meta.name);
             //console.log('  ' + taskVariable)
+
             ensureModule(
               path.resolve(`${__dirname}/templates/promise`), // templates are stored relative to this file's dir
               path.resolve(`./code_modules/${procedureName}/code_modules/${taskName}`), // results realtive to calling program's root.
               Object.assign({author: program.meta.author, keywords:keywords(task.meta)},task.meta)
             );
 
+            // walk task's actions
             task.data.forEach(function(action,index){
               const actionVariable = camelCase(action.meta.name);
               const actionName = kebabCase(action.meta.name);
@@ -109,12 +243,11 @@ const manager = function(program){
               );
 
 
+            }); // walk task's actions: task-action
 
-            }); // action
+          }); // walk procedure's tasks: procedure-task
 
-          }); // task
-
-        }); // procedures
+        }); // walk program procedures: program-procedure
 
 
 
@@ -123,88 +256,30 @@ const manager = function(program){
 
     buildIndex: function(){
       const indexContent = [];
-      const requireContents = [];
-      requireContents.push(`import util from 'util';`)
-      const asyncCallLine = [];
-
-      const functionIndex = [];
-
-      // make the index.js file
-      program.data.forEach(function(section){
-        // readme.push(`## ${section.meta.name}`)
-        let previousPart;
-        section.data.forEach(function(part,index){
-          const moduleVariable = camelCase(part.name);
-          const moduleName = kebabCase(part.name);
-
-          let clean = Object.assign({},part);
-          delete clean.name;
-          delete clean.description;
-
-          //requireContents.push(``);
-          //requireContents.push(`const ${moduleVariable}Setup = ${toSource(clean, null, '')};`)
-          requireContents.push(`import ${moduleVariable} from './code_modules/${moduleName}';`)
-
-          asyncCallLine.push(``);
-          asyncCallLine.push(`    // ${index+1}. ${part.name}:${part.description}`);
-
-          asyncCallLine.push(`    console.log('\\n${part.name}');`);
-
-          if(!previousPart){
-            // first
-            asyncCallLine.push(`    const ${moduleVariable}Result = await ${moduleVariable}({context,setup:${toSource(clean, null, '')},input:{}});`);
-            asyncCallLine.push(`    // console.log(util.inspect(${moduleVariable}Result),false,2,true)`);
-
-          }else if(index == section.data.length-1){
-            // last
-            asyncCallLine.push(`    const finalResult = await ${moduleVariable}({context,setup:${toSource(clean, null, '')},input: ${camelCase(previousPart.name)}Result});`);
-            asyncCallLine.push(`    // console.log(util.inspect(finalResult),false,2,true)`);
-
-          }else{
-            // middle
-            asyncCallLine.push(`    const ${moduleVariable}Result = await ${moduleVariable}({context,setup:${toSource(clean, null, '')},input: ${camelCase(previousPart.name)}Result});`);
-            asyncCallLine.push(`    // console.log(util.inspect(${moduleVariable}Result),false,2,true)`);
-          }
-
-          functionIndex.push(moduleVariable)
-          previousPart  = part;
-        })
-
-
-
-      });
 
       indexContent.push('// Load Modules');
-      requireContents.forEach(line => indexContent.push(line));
-      indexContent.push('');
-      // indexContent.push('\n');
-
-      //indexContent.push(`const functionIndex = [${functionIndex.join(', ')}];`);
-
-      indexContent.push('async function main(context={}){');
-      indexContent.push('');
-      indexContent.push('  try {');
-      asyncCallLine.forEach(line => indexContent.push(line));
-      indexContent.push('');
-      indexContent.push('    // Return Result');
-      indexContent.push('    return finalResult;');
+      indexContent.push(`import {inspect} from 'util';`)
+      program.data.forEach(function(procedure, procedureIndex){
+        const procedureVariable = camelCase(procedure.meta.name);
+        const procedureName = kebabCase(procedure.meta.name);
+        indexContent.push(`import ${procedureVariable} from 'code_modules/${kebabCase(procedure.meta.name)}';`)
+      })
       indexContent.push('');
 
-      indexContent.push('  } catch(error) {');
+      indexContent.push('async function main(){');
       indexContent.push('');
-      indexContent.push('    console.error(error);');
+      let names = []
+      program.data.forEach(function(procedure, procedureIndex){
+        const procedureVariable = camelCase(procedure.meta.name);
+        const procedureName = kebabCase(procedure.meta.name);
+        names.push(procedureVariable);
+      })
+      indexContent.push(`  return {${names.join(', ')}};`);
       indexContent.push('');
-      indexContent.push('  } // end try/catch');
-      indexContent.push('');
-      indexContent.push('} // end function main ()');
+      indexContent.push('}');
       indexContent.push('main();');
 
-
-
-
       fs.writeFileSync(path.resolve('./index.mjs'), indexContent.join('\n') );
-
-
 
     }
 
