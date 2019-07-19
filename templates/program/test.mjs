@@ -1,5 +1,5 @@
 /*
- classification: PROGRAM PROCEDURE
+ classification: PROGRAM
            name: {{name}}
     description: {{description}}
          author: {{author}}
@@ -7,7 +7,7 @@
 
 // Load Modules
 import {inspect} from 'util';
-{{#each taskImport}}
+{{#each procedureImport}}
 import {{camelCase name}} from './code_modules/{{kebabCase name}}';
 {{/each}}
 
@@ -18,8 +18,7 @@ export default async function main(context={test:true}){
     const debug = false;
     const result = {};
 
-  {{#each taskExecutioin}}
-
+  {{#each procedureExecutioin}}
     // {{name}}: {{description}}
     // TODO: you should configure {{camelCase name}}Expected
     const {{camelCase name}}Expected = {};

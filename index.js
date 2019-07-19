@@ -18,6 +18,27 @@ const stopword = require('stopword');
 
 const ensureModule = require('../ensure-module');
 
+function keywords(meta){
+  if(meta.keywords){
+    return meta.keywords
+  }
+
+  let strings = meta.keywords || [];
+  if(meta.name){
+    strings = strings.concat(meta.name.toLowerCase().split(' '))
+  }
+  if(meta.description){
+    strings = strings.concat(meta.description.toLowerCase().split(' '))
+  }
+  strings = strings.sort()
+  strings = strings.map(string=>string.replace(/[^a-z0-9-]/,''))
+  strings = strings.map(string=>pluralize(string,1))
+
+  strings = stopword.removeStopwords(strings);
+  strings = uniq(strings);
+  strings = take(strings, 4);
+  return strings;
+}
 
 const describeMeta = function(readme, meta){
   Object
@@ -75,7 +96,16 @@ const manager = function(program){
       const packageJson = JSON.parse(fs.readFileSync(path.resolve('./package.json')));
       Object.assign(packageJson, program.meta, {
         name:kebabCase(program.meta.name),
-        main:'index.mjs'
+        main:'index.mjs',
+        "dependencies": {
+          "commander": "^2.20.0"
+        },
+        "bin": {
+          [kebabCase(program.meta.name)]: "cli.mjs"
+        },
+        "scripts": {
+          "test": "test.mjs"
+        },
       });
       fs.writeFileSync(path.resolve('./package.json'), JSON.stringify(packageJson, null, '  ') );
     },
@@ -163,27 +193,7 @@ const manager = function(program){
     },
 
     buildModules: function(){
-      function keywords(meta){
-        if(meta.keywords){
-          return meta.keywords
-        }
 
-        let strings = meta.keywords || [];
-        if(meta.name){
-          strings = strings.concat(meta.name.toLowerCase().split(' '))
-        }
-        if(meta.description){
-          strings = strings.concat(meta.description.toLowerCase().split(' '))
-        }
-        strings = strings.sort()
-        strings = strings.map(string=>string.replace(/[^a-z0-9-]/,''))
-        strings = strings.map(string=>pluralize(string,1))
-
-        strings = stopword.removeStopwords(strings);
-        strings = uniq(strings);
-        strings = take(strings, 4);
-        return strings;
-      }
 
       // walk program procedures
       program.data.forEach(function(procedure, index){
@@ -209,7 +219,7 @@ const manager = function(program){
           Object.assign(data, {author: program.meta.author, keywords:keywords(procedure.meta)});
           Object.assign(data, procedure.meta);
           Object.assign(data, code);
-
+          Object.assign(data, {debug:JSON.stringify(data, null, '  ')});
 
           ensureModule(
             path.resolve(`${__dirname}/templates/program-procedure`), // templates are stored relative to this file's dir
@@ -222,12 +232,31 @@ const manager = function(program){
 
             const taskVariable = camelCase(task.meta.name);
             const taskName = kebabCase(task.meta.name);
-            //console.log('  ' + taskVariable)
+
+            const code = {
+              actionImport:task.data.map(action=>({name:action.meta.name,description:action.meta.description})),
+              actionExecutioin:[],
+            };
+            let previousAction = {meta:{},data:[]};
+            task.data.forEach(function(action, index){
+              const name = action.meta.name;
+              previousName = previousAction.meta.name;
+              const description = action.meta.description;
+              const setup = action.meta.parameters
+              code.actionExecutioin.push({name,description,setup,previousName})
+              previousAction = action;
+            });
+
+            const data = {};
+            Object.assign(data, {author: program.meta.author, keywords:keywords(procedure.meta)});
+            Object.assign(data, task.meta);
+            Object.assign(data, code);
+            Object.assign(data, {debug:JSON.stringify(data, null, '  ')});
 
             ensureModule(
-              path.resolve(`${__dirname}/templates/promise`), // templates are stored relative to this file's dir
+              path.resolve(`${__dirname}/templates/procedure-task`), // templates are stored relative to this file's dir
               path.resolve(`./code_modules/${procedureName}/code_modules/${taskName}`), // results realtive to calling program's root.
-              Object.assign({author: program.meta.author, keywords:keywords(task.meta)},task.meta)
+              data
             );
 
             // walk task's actions
@@ -237,7 +266,7 @@ const manager = function(program){
               //console.log('    ' + actionVariable)
 
               ensureModule(
-                path.resolve(`${__dirname}/templates/promise`), // templates are stored relative to this file's dir
+                path.resolve(`${__dirname}/templates/task-action`), // templates are stored relative to this file's dir
                 path.resolve(`./code_modules/${procedureName}/code_modules/${taskName}/code_modules/${actionName}`), // results realtive to calling program's root.
                 Object.assign({author: program.meta.author, keywords:keywords(action.meta)},action.meta)
               );
@@ -255,31 +284,57 @@ const manager = function(program){
     },
 
     buildIndex: function(){
-      const indexContent = [];
 
-      indexContent.push('// Load Modules');
-      indexContent.push(`import {inspect} from 'util';`)
-      program.data.forEach(function(procedure, procedureIndex){
-        const procedureVariable = camelCase(procedure.meta.name);
-        const procedureName = kebabCase(procedure.meta.name);
-        indexContent.push(`import ${procedureVariable} from 'code_modules/${kebabCase(procedure.meta.name)}';`)
-      })
-      indexContent.push('');
 
-      indexContent.push('async function main(){');
-      indexContent.push('');
-      let names = []
-      program.data.forEach(function(procedure, procedureIndex){
-        const procedureVariable = camelCase(procedure.meta.name);
-        const procedureName = kebabCase(procedure.meta.name);
-        names.push(procedureVariable);
-      })
-      indexContent.push(`  return {${names.join(', ')}};`);
-      indexContent.push('');
-      indexContent.push('}');
-      indexContent.push('main();');
+      const code = {
+        procedureImport:program.data.map(procedure=>({name:procedure.meta.name,description:procedure.meta.description})),
+        procedureExecutioin:[],
+      };
 
-      fs.writeFileSync(path.resolve('./index.mjs'), indexContent.join('\n') );
+      program.data.forEach(function(procedure, index){
+          const procedureVariable = camelCase(procedure.meta.name);
+          const procedureName = kebabCase(procedure.meta.name);
+          const name = procedure.meta.name;
+          const description = procedure.meta.description;
+          const setup = procedure.meta.parameters||'{}'
+          code.procedureExecutioin.push({name,description,setup})
+        });
+
+        const data = {};
+        Object.assign(data, program.meta);
+        Object.assign(data, code);
+
+        ensureModule(
+          path.resolve(`${__dirname}/templates/program`), // templates are stored relative to this file's dir
+          path.resolve(`./`), // results realtive to calling program's root.
+          data
+        );
+
+      // const indexContent = [];
+      //
+      // indexContent.push('// Load Modules');
+      // indexContent.push(`import {inspect} from 'util';`)
+      // program.data.forEach(function(procedure, procedureIndex){
+      //   const procedureVariable = camelCase(procedure.meta.name);
+      //   const procedureName = kebabCase(procedure.meta.name);
+      //   indexContent.push(`import ${procedureVariable} from 'code_modules/${kebabCase(procedure.meta.name)}';`)
+      // })
+      // indexContent.push('');
+      //
+      // indexContent.push('async function main(){');
+      // indexContent.push('');
+      // let names = []
+      // program.data.forEach(function(procedure, procedureIndex){
+      //   const procedureVariable = camelCase(procedure.meta.name);
+      //   const procedureName = kebabCase(procedure.meta.name);
+      //   names.push(procedureVariable);
+      // })
+      // indexContent.push(`  return {${names.join(', ')}};`);
+      // indexContent.push('');
+      // indexContent.push('}');
+      // indexContent.push('main();');
+      //
+      // fs.writeFileSync(path.resolve('./index.mjs'), indexContent.join('\n') );
 
     }
 

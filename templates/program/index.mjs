@@ -1,5 +1,5 @@
 /*
- classification: PROGRAM PROCEDURE
+ classification: PROGRAM
            name: {{name}}
     description: {{description}}
          author: {{author}}
@@ -7,26 +7,22 @@
 
 // Load Modules
 import {inspect} from 'util';
-{{#each taskImport}}
+{{#each procedureImport}}
 import {{camelCase name}} from './code_modules/{{kebabCase name}}';
 {{/each}}
 
 // Example module interface
-export default async function main(context={test:true}){
+export default async function main(context={}){
 
   try {
     const debug = false;
     const result = {};
 
-  {{#each taskExecutioin}}
-
+    // TODO: you should set this up yourself.
+  {{#each procedureExecutioin}}
     // {{name}}: {{description}}
-    // TODO: you should configure {{camelCase name}}Expected
-    const {{camelCase name}}Expected = {};
-    if(debug) console.log('{{name}}: {{description}}');
     // const {{camelCase name}}Data = await {{camelCase name}}({context={}, setup={}, input={}});
-    if(debug) console.log(inspect({{camelCase name}}Data));
-    // assert.equal({{camelCase name}}Data, expectedBytes);
+    // if(debug) console.log(inspect({{camelCase name}}Data));
   {{/each}}
 
     // Return Result
