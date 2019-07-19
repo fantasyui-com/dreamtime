@@ -17,7 +17,7 @@ import {{camelCase name}} from '{{name}}';
 import {{camelCase name}} from './code_modules/{{kebabCase name}}';
 {{/each}}
 
-export default async function main(input={}, context={}){
+export default async function main({context, input}){
 
   try {
     const debug = false;
@@ -25,12 +25,17 @@ export default async function main(input={}, context={}){
   {{#each taskExecutioin}}
     // {{name}}: {{description}}
     // if(debug) console.log('{{name}}: {{description}}');
-{{#if @first}}
-    const {{camelCase name}}Data = await {{camelCase name}}({context, setup:{{{setup}}}, input});
+{{#if @last}}
+  {{#if @first}}
+    const finalResult = await {{camelCase name}}({context, setup:{{{setup}}}, input});
     // if(debug) console.log(inspect({{camelCase name}}Data));
-{{else if @last}}
+  {{else}}
     const finalResult = await {{camelCase name}}({context, setup:{{{setup}}}, input:{{camelCase previousName}}Data});
     // if(debug) console.log(inspect(finalResult));
+  {{/if}}
+{{else if @first}}
+    const {{camelCase name}}Data = await {{camelCase name}}({context, setup:{{{setup}}}, input});
+    // if(debug) console.log(inspect({{camelCase name}}Data));
 {{else}}
     const {{camelCase name}}Data = await {{camelCase name}}({context, setup:{{{setup}}}, input:{{camelCase previousName}}Data});
     // if(debug) console.log(inspect({{camelCase name}}Data));

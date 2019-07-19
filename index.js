@@ -101,10 +101,12 @@ const manager = function(program){
           "commander": "^2.20.0"
         },
         "bin": {
-          [kebabCase(program.meta.name)]: "cli.mjs"
+          [kebabCase(program.meta.name)]: "node --experimental-modules cli.mjs"
         },
         "scripts": {
-          "test": "test.mjs"
+          "cli": "cli.mjs",
+          "index": "node --experimental-modules index.mjs",
+          "test": "node --experimental-modules test.mjs"
         },
       });
       fs.writeFileSync(path.resolve('./package.json'), JSON.stringify(packageJson, null, '  ') );
@@ -210,7 +212,7 @@ const manager = function(program){
             const name = task.meta.name;
             previousName = previousTask.meta.name;
             const description = task.meta.description;
-            const setup = task.meta.parameters
+            const setup = task.meta.parameters || '{}'
             code.taskExecutioin.push({name,description,setup,previousName})
             previousTask = task;
           });
@@ -242,7 +244,7 @@ const manager = function(program){
               const name = action.meta.name;
               previousName = previousAction.meta.name;
               const description = action.meta.description;
-              const setup = action.meta.parameters
+              const setup = action.meta.parameters|| '{}'
               code.actionExecutioin.push({name,description,setup,previousName})
               previousAction = action;
             });

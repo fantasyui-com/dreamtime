@@ -22,31 +22,28 @@ import {{camelCase name}} from './code_modules/{{kebabCase name}}';
 
 export default async function main({ context, setup, input }) {
 
-  const debug = true;
+  const debug = false;
 
   if(debug) console.log('Input for: {{name}} - {{description}}')
-  if(debug) console.log(util.inspect(input,false,2,true))
+  if(debug) console.log(inspect(input,false,2,true))
 
   // Prepare the outout object
   const output = {
     someList:[],
   };
 
-  return async (resolve, reject) => {
 
-    // TODO: customize this to match your code
-    for (const element of input.someList) {
+  // TODO: customize this to match your code
+  for (const element of input.someList||[1]) {
+    {{#each actionExecutioin}}
+      // {{name}}: {{description}}
+      if(debug) console.log('Calling {{camelCase name}}')
+      const {{camelCase name}}Data = await {{camelCase name}}(input);
+      if(debug) console.log(inspect({{camelCase name}}Data));
+    {{/each}}
+  }
 
-      {{#each actionExecutioin}}
-        // {{name}}: {{description}}
-        if(debug) console.log('Calling {{camelCase name}}')
-        const {{camelCase name}}Data = await {{camelCase name}}(setup);
-        if(debug) console.log(inspect({{camelCase name}}Data));
-      {{/each}}
 
-    }
 
-    resolve(output);
-  };
 
 };

@@ -23,12 +23,14 @@ export default async function main(setup) {
 
   // Prepare the outout object
   const output = {text: 'Action Response' };
-  const debug = true;
+  const debug = false;
 
-  if(debug) console.log('Input for: {{name}} - {{description}}')
-  if(debug) console.log(util.inspect(setup,false,2,true))
+  if(debug) console.log('Input for task action: {{name}} - {{description}}');
+  if(debug) console.log(inspect(setup,false,2,true));
+  if(debug) console.log(inspect(output,false,2,true));
 
-  consoel.log(setup)
+  console.log(inspect(setup,false,2,true));
+
   return output;
 
 
