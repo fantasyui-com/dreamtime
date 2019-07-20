@@ -22,7 +22,7 @@ import {{camelCase name}} from './code_modules/{{kebabCase name}}';
 
 export default async function main({ context, setup, input }) {
 
-  const debug = false;
+  const debug = true;
 
   if(debug) console.log('Input for: {{name}} - {{description}}')
   if(debug) console.log(inspect(input,false,2,true))
@@ -31,7 +31,6 @@ export default async function main({ context, setup, input }) {
   const output = {
     someList:[],
   };
-
 
   // TODO: customize this to match your code
   for (const element of input.someList||[1]) {
@@ -43,7 +42,6 @@ export default async function main({ context, setup, input }) {
     {{/each}}
   }
 
-
-
+  return output;
 
 };

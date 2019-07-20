@@ -27,7 +27,7 @@ async function main(){
       .option('-t, --text [value]', 'Text input')
       .action(async function (options) {
         const input = Object.entries(options).filter(([name])=>!name.startsWith('_')).filter(([name])=>!['commands', 'options', 'parent'].includes(name)).reduce((a,[k,v])=>({...a,[k]:v}),{})
-        const {{camelCase name}}Data = await {{camelCase name}}({context:{}, input:input});
+        const {{camelCase name}}Data = await {{camelCase name}}({context:{}, input});
     });
   {{/each}}
 
