@@ -7,14 +7,15 @@
     "dreamtime": "cli.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "save": "git add .; git commit -m 'New Release'; git push; npm version patch; npm publish; git push;"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/fantasyui-com/dreamtime.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "fantasyui.com <fantasyui.com@gmail.com>",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/fantasyui-com/dreamtime/issues"
@@ -27,7 +28,7 @@
     "js-beautify": "^1.10.1",
     "kebab-case": "^1.0.0",
     "lodash": "^4.17.15",
-    "package-info": "^3.0.2",
+    "package-info": "^2.2.8",
     "pluralize": "^8.0.0",
     "stopword": "^0.3.2",
     "tosource": "^1.0.0"
