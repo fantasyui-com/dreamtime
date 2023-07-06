@@ -25,10 +25,10 @@
     "chalk": "^2.4.2",
     "commander": "^2.20.0",
     "ensure-module": "^1.11.0",
-    "js-beautify": "^1.10.1",
+    "js-beautify": "^1.7.5",
     "kebab-case": "^1.0.0",
     "lodash": "^4.17.15",
-    "package-info": "^5.0.6",
+    "package-info": "^5.0.1",
     "pluralize": "^8.0.0",
     "stopword": "^0.3.2",
     "tosource": "^1.0.0"
