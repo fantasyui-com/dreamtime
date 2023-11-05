@@ -1,6 +1,6 @@
 {
   "name": "dreamtime",
-  "version": "1.44.0",
+  "version": "1.45.0",
   "description": "Causality violation for JavaScript. Executing programs before functions are written (think cucumber in js)",
   "main": "index.js",
   "bin": {
